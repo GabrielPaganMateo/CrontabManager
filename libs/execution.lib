@@ -144,14 +144,37 @@ passwordConnectAndExecute() {
     log "Execution finished."
 }
 
+executeSFTPAllConnections() {
+    for i_connect in "${ALL_CONNECTIONS[@]}"
+    do
+        REMOTEUSERANDHOST="${i_connect##*[}"
+        REMOTEUSERANDHOST="${REMOTEUSERANDHOST%%]*}"
+        REMOTEUSER="${REMOTEUSERANDHOST%@*}"
+        REMOTEHOST="${REMOTEUSERANDHOST#*@}"
+        if [[ "$i_connect" == ""*") ["*"] <"*">" ]]
+        then
+            PASSWORD="${i_connect##*<}"
+            PASSWORD="${PASSWORD%%>*}"
+            test -n "$PASSWORD" && passwordCopyToRemote "$PASSWORD" "$SRC_PATH" "$DST_PATH"
+        else
+            test -z "$PASSWORD" && scpCopyToRemote "$SRC_PATH" "$DST_PATH"
+        fi
+        PASSWORD=""
+    done
+    SRC_PATH=""
+    DST_PATH=""
+}
+
 executeSFTP() {
     if [ "$CONN_NUM" == "*" ]
     then
         getAllConnections
         log
-        CMD=$(askForInput "Input a command or path to script for execution : ")
-        executeAllConnections
-        CMD=""
+        SRC_PATH=$(askForInput "Input source path of file or directory : ")
+        DST_PATH=$(askForInput "Input destination path : ")
+        executeSFTPAllConnections
+        SRC_PATH=""
+        DST_PATH=""
     else
         getConnection "$CONN_NUM"
         REMOTEUSER="${CONNECTION%@*}"
@@ -180,7 +203,7 @@ scpCopyToRemote() {
     else
         echo
         echo "== SCP Transfer =="
-        scp "$1" "${REMOTEUSER}@${REMOTEHOST}:$2" 2>&1 | tee -a "$LOG"
+        scp -r "$1" "${REMOTEUSER}@${REMOTEHOST}:$2" 2>&1 | tee -a "$LOG"
         echo "=================="
         handleConnectionExecutionFailure "$?"
     fi
@@ -205,7 +228,7 @@ passwordCopyToRemote() {
     else
         echo
         echo "== SCP Transfer =="
-        "$TOOL_DIR"/PSCP.EXE -pw "$1" "$2" "${REMOTEUSER}@${REMOTEHOST}:$3" 2>&1 | tee -a "$LOG"
+        "$TOOL_DIR"/PSCP.EXE -r -pw "$1" "$2" "${REMOTEUSER}@${REMOTEHOST}:$3" 2>&1 | tee -a "$LOG"
         echo "=================="
         handleConnectionExecutionFailure "$?"
     fi

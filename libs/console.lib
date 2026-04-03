@@ -51,7 +51,7 @@ askForExecution() {
 }
 
 askForSCP() {
-    TRANSFER=$(askForInput "Copy file(s) to $1 connections ? (y/n)")
+    TRANSFER=$(askForInput "Copy files to $1 connections ? (y/n)")
     case $TRANSFER in
         y|Y)
             exit 0
