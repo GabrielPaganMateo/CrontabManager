@@ -143,6 +143,43 @@ Done.
 :: Execution finished.
 ```
 
+Choose whether to copy files
+
+```
+:: The following App Servers connections are available:
+::
+::  1) [dev@ec2-52-91-140-189.compute-1.amazonaws.com]
+::  2) [ec2-user@ec2-54-236-21-29.compute-1.amazonaws.com]
+::
+:: Execute a command or script with App Servers connections ? (y/n) n
+:: Copy files to App Servers connections ? (y/n) y
+```
+
+Enter source and destination path of file to copy
+
+```
+:: Let's copy files to App Servers !
+:: 
+::  1) [dev@ec2-52-91-140-189.compute-1.amazonaws.com]
+::  2) [ec2-user@ec2-54-236-21-29.compute-1.amazonaws.com]
+:: 
+:: To select one connection, enter an index from the list.
+:: If you want to use all connections, use * as input
+:: Connection number : 1
+:: 
+:: Selected -> dev@ec2-52-91-140-189.compute-1.amazonaws.com
+:: 
+:: Input source path of file or directory :  scripts/test.sh
+:: Input destination path :  ~/bin/
+:: Connecting to dev@ec2-52-91-140-189.compute-1.amazonaws.com
+:: Copying : scripts/test.sh -> ~/bin/
+
+== SCP Transfer ==
+==================
+
+:: Copy finished.
+```
+
 Output and logs will be displayed and stored
 
 ```
