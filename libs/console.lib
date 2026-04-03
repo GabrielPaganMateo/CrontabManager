@@ -9,15 +9,26 @@ askForExecution() {
             executeConnection
             ;;
         n|N)
-            ADD=$(askForMoreConfigurations)
+            ASK_TRANSFER=$(askForSCP "$1")
             if [ $? -eq 1 ]
             then
-                getRemoteFileName "$REMOTEFILE"
-                REMOVE=$(askToRemoveConfigurations)
-                if [ $? -eq 0 ]
+                ADD=$(askForMoreConfigurations)
+                if [ $? -eq 1 ]
                 then
-                    askForRemoveConnection
-                    removeConnection "$CONN_REM_NUM"
+                    getRemoteFileName "$REMOTEFILE"
+                    REMOVE=$(askToRemoveConfigurations)
+                    if [ $? -eq 0 ]
+                    then
+                        askForRemoveConnection
+                        removeConnection "$CONN_REM_NUM"
+                        getConnectionList "$REMOTEFILE"
+                        clear
+                        log "The following ${ONLYNAME} connections are available:"
+                        displayConnectionList
+                        askForExecution "$1"
+                    fi
+                else
+                    addRemoteConfiguration
                     getConnectionList "$REMOTEFILE"
                     clear
                     log "The following ${ONLYNAME} connections are available:"
@@ -25,12 +36,11 @@ askForExecution() {
                     askForExecution "$1"
                 fi
             else
-                addRemoteConfiguration
-                getConnectionList "$REMOTEFILE"
                 clear
-                log "The following ${ONLYNAME} connections are available:"
+                log "Let's copy files to $1 !"
                 displayConnectionList
-                askForExecution "$1"
+                askForConnection
+                executeSFTP
             fi
             ;;
         *)
@@ -38,6 +48,22 @@ askForExecution() {
             askForExecution "$1"
             ;;
     esac
+}
+
+askForSCP() {
+    TRANSFER=$(askForInput "Copy files to $1 connections ? (y/n)")
+    case $TRANSFER in
+        y|Y)
+            exit 0
+            ;;
+        n|N)
+            exit 1
+            ;;
+        *)
+            errorLog "Please answer with y (yes) or n (no)"
+            askForSCP
+            ;;
+    esac  
 }
 
 askToCreateNewGroup() {
