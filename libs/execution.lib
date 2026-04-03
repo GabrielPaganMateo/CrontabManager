@@ -143,3 +143,73 @@ passwordConnectAndExecute() {
     echo
     log "Execution finished."
 }
+
+executeSFTP() {
+    if [ "$CONN_NUM" == "*" ]
+    then
+        getAllConnections
+        log
+        CMD=$(askForInput "Input a command or path to script for execution : ")
+        executeAllConnections
+        CMD=""
+    else
+        getConnection "$CONN_NUM"
+        REMOTEUSER="${CONNECTION%@*}"
+        REMOTEHOST="${CONNECTION#*@}"
+        log
+        SRC_PATH=$(askForInput "Input source path of file or directory : ")
+        DST_PATH=$(askForInput "Input destination path : ")
+        test -z "$PASSWORD" && scpCopyToRemote "$SRC_PATH" "$DST_PATH"
+        test -n "$PASSWORD" && passwordCopyToRemote "$PASSWORD" "$SRC_PATH" "$DST_PATH"
+        PASSWORD=""
+        SRC_PATH=""
+        DST_PATH=""
+    fi
+}
+
+scpCopyToRemote() {
+    log "Connecting to ${REMOTEUSER}@${REMOTEHOST}"
+    log "Copying : $1 -> $2"
+
+    if [[ -z "$1" ]]; then
+        errorLog "Cannot copy, empty source input."
+    elif [[ ! -e "$1" ]]; then
+        errorLog "Cannot copy, source does not exist: $1"
+    elif [[ -z "$2" ]]; then
+        errorLog "Cannot copy, empty destination input."
+    else
+        echo
+        echo "== SCP Transfer =="
+        scp "$1" "${REMOTEUSER}@${REMOTEHOST}:$2" 2>&1 | tee -a "$LOG"
+        echo "=================="
+        handleConnectionExecutionFailure "$?"
+    fi
+
+    echo
+    log "Copy finished."
+}
+
+passwordCopyToRemote() {
+    downloadPasswordConnectionTool
+    log "Connecting to ${REMOTEUSER}@${REMOTEHOST}"
+    log "Copying : $2 -> $3"
+
+    if [[ -z "$1" ]]; then
+        errorLog "Cannot connect, empty password input"
+    elif [[ -z "$2" ]]; then
+        errorLog "Cannot copy, empty source input."
+    elif [[ ! -e "$2" ]]; then
+        errorLog "Cannot copy, source does not exist: $2"
+    elif [[ -z "$3" ]]; then
+        errorLog "Cannot copy, empty destination input."
+    else
+        echo
+        echo "== SCP Transfer =="
+        "$TOOL_DIR"/PSCP.EXE -pw "$1" "$2" "${REMOTEUSER}@${REMOTEHOST}:$3" 2>&1 | tee -a "$LOG"
+        echo "=================="
+        handleConnectionExecutionFailure "$?"
+    fi
+
+    echo
+    log "Copy finished."
+}
